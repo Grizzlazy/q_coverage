@@ -3,6 +3,7 @@ import simplex_method
 import queue
 import math
 import numpy as np
+import copy
 
 file_name_csv = "Data/N=10_W=10_H=8_normal_0.csv"
 
@@ -18,78 +19,66 @@ P, a, I = data.find_positions(T)
 
 c = [1]*len(P)
 Q_0 = max(Q) #Highest demand
-
+epsilon = (-1)*0.000001
 
 def isInteger(x):
-    """
-    As for a vector x,check if it contains only integer values:
-    return the boolean value True and the None, i.e., [True,None] when the values are all integer
-    return False and the index of the noninteger value in x, i.e., [False,index]
-
-    """
     xx = np.array(x)
-    dist = np.array(abs(np.rint(xx)-xx))
-    for xx in dist:
-        if float(xx).is_integer() == False:
+    dist = np.array(abs(np.rint(xx) - xx))
+    for i, val in enumerate(dist):
+        if not float(val).is_integer():
             dist[dist == 0] = np.nan
-            return (False, np.nanargmin(dist))
-    return (True, None)
+            return False, np.nanargmin(dist)
+    return True, None
 
 def create_subproblem(A, b, c, Q0, solution):
     # Create subproblem with rounded down constraints
+    index = isInteger(solution)[1]
+    
     subproblem_floor = {
-        'A': np.vstack([A, np.eye(len(c))]),
-        'b': np.concatenate([b, np.floor(solution)]),
+        'A': np.vstack([A, [0]*(index)+[1]+[0]*(len(P)-index-1)]),
+        'b': np.concatenate([b, [int(solution[index])]]),
         'c': c,
         'Q0': Q0
     }
-
     # Create subproblem with rounded up constraints
     subproblem_ceil = {
-        'A': np.vstack([A, -np.eye(len(c))]),
-        'b': np.concatenate([b, -np.ceil(solution)]),
+        'A': np.vstack([A, [0]*(index)+[-1]+[0]*(len(P)-index-1)]),
+        'b': np.concatenate([b, [-(int(solution[index])+1)]]),
         'c': c,
         'Q0': Q0
     }
 
     return subproblem_floor, subproblem_ceil
 
+
 def branch_and_bound(A, b, c, Q0):
     # Initialize priority queue
-    pq = queue.PriorityQueue()
-    tolerance=1e-6
-    max_iterations=1000
+    q = queue.Queue()
+    iteration = 100
+    best_value = 1e6
+    best_solution = []
     initial_problem = {'A': A, 'b': b, 'c': c, 'Q0': Q0}
-    pq.put((0, initial_problem))
-
-    best_solution = None
-    best_value = float('inf')
-
-    iterations = 0
-    while not pq.empty() and iterations < max_iterations:
-        # Pop problem with the best lower bound
-        _, current_problem = pq.get()
-
-        # Solve the current problem
-        current_solution, current_value = simplex_method.simplex_method(current_problem['A'], current_problem['b'], current_problem['c'], current_problem['Q0'])
-
-        # Update the best solution
-        if np.all(current_value < best_value):
-            best_solution = current_solution
-            best_value = current_value
-
-        # Check if the current solution is integer
-        if all(np.abs(np.round(current_solution) - current_solution) < tolerance):
-            continue  # Skip if the solution is integer
-
-        # Branching - Create two subproblems
-        subproblem_floor, subproblem_ceil = create_subproblem(current_problem['A'], current_problem['b'], current_problem['c'], current_problem['Q0'], np.floor(current_solution))
-        subproblem_ceil['Q0'] = current_solution
-        subproblem_floor['Q0'] = current_solution
-        pq.put((current_value, subproblem_floor))
-        pq.put((current_value, subproblem_ceil))
-
-        iterations += 1
+    q.put(initial_problem)
+    while not q.empty() and iteration > 0:
+        current_problem = q.get()
+        flag, current_solution, current_value = simplex_method.simplex_method(current_problem['A'], current_problem['b'], current_problem['c'], current_problem['Q0'])
+        if not flag: continue
+        if isInteger(current_solution)[0]:
+            if current_value - best_value < epsilon:
+                best_solution = copy.deepcopy(current_solution)
+                best_value = current_value
+            else: 
+                continue
+        else:
+            if current_value - best_value > 1e-6:
+                continue
+            subproblem_floor, subproblem_ceil = create_subproblem(current_problem['A'], current_problem['b'], current_problem['c'], current_problem['Q0'], current_solution)
+            q.put(subproblem_floor)
+            q.put(subproblem_ceil)
+        print(1000 - iteration)
+        print(current_value)
+        print(current_solution)
+        iteration -=1
 
     return best_solution, best_value
 
@@ -97,15 +86,3 @@ x,  optimal_solution = branch_and_bound(a, Q, c, Q_0)
 
 print(x)
 print(optimal_solution)
-
-
-
-
-
-
-    
-
-
-
-
-
