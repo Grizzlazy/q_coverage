@@ -5,7 +5,7 @@ import math
 import numpy as np
 import copy
 
-file_name_csv = "Data/N=10_W=10_H=8_normal_0.csv"
+file_name_csv = "Data/N=10_W=10_H=8_uniform_0.csv"
 
 T = [] #Target
 Q = [] #Demand
@@ -52,9 +52,8 @@ def create_subproblem(A, b, c, Q0, solution):
 
 
 def branch_and_bound(A, b, c, Q0):
-    # Initialize priority queue
     q = queue.Queue()
-    iteration = 100
+    iteration = 1e6
     best_value = 1e6
     best_solution = []
     initial_problem = {'A': A, 'b': b, 'c': c, 'Q0': Q0}
@@ -70,12 +69,12 @@ def branch_and_bound(A, b, c, Q0):
             else: 
                 continue
         else:
-            if current_value - best_value > 1e-6:
+            if current_value - best_value > 0.01:
                 continue
             subproblem_floor, subproblem_ceil = create_subproblem(current_problem['A'], current_problem['b'], current_problem['c'], current_problem['Q0'], current_solution)
             q.put(subproblem_floor)
             q.put(subproblem_ceil)
-        print(1000 - iteration)
+        print('---------',iteration, '-----------')
         print(current_value)
         print(current_solution)
         iteration -=1
