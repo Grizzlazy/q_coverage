@@ -17,7 +17,9 @@ a = [] #Sensor j cover by position P_i
 T, Q = data.read_data(file_name_csv)
 
 P, a = data.find_positions(T)
-
+print(P)
+a = np.array(a)
+print(a)
 c = [1]*len(P)
 Q_0 = max(Q) #Highest demand
 epsilon = (-1)*0.000001
