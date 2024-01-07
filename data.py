@@ -4,7 +4,7 @@ N = 20  # number of targets
 W = 30  # width
 H = 40  # height
 R = 5  # radius of sensor
-deltaR = 0.001
+deltaR = 0.1
 
 def read_data(path):
     coordinates = []

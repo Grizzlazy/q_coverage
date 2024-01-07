@@ -5,7 +5,7 @@ import math
 import numpy as np
 import copy
 from scipy.optimize import linprog
-
+import matplotlib.pyplot as plt
 file_name_csv = "Data/N=20_W=30_H=40_normal_0.csv"
 
 T = [] #Target
@@ -114,3 +114,32 @@ if flag:
         print("Number of sensors in P",output[i][0]," is ", int(output[i][1]))
     
     print("Total sensors: ", int(optimal_solution))
+# Create a new figure with specified size
+plt.figure(figsize=(data.W, data.H))
+
+# Set x-axis and y-axis limits based on W and H
+
+
+for i in range(len(output)):
+    center = np.array(output[i][0])
+    theta = np.linspace(0, 2*np.pi, 100)
+    x = (data.R+data.deltaR) * np.cos(theta) + center[0]
+    y = (data.R+data.deltaR) * np.sin(theta) + center[1]   
+    plt.plot(x, y, color = 'blue')
+    if i == 0:
+        plt.scatter(center[0], center[1], color='red', label = 'Sensors')
+    else:
+        plt.scatter(center[0], center[1], color='red')
+
+for i in range(len(T)):
+    if i == 0:
+        plt.scatter(T[i][0], T[i][1], color='green', marker='*', label = 'Targets')
+    else:
+        plt.scatter(T[i][0], T[i][1], color='green', marker='*')
+
+plt.axis([0, data.W, 0, data.H])
+plt.gca().set_aspect('equal', adjustable='box')
+plt.legend()
+plt.xlabel('X-axis')
+plt.ylabel('Y-axis')
+plt.show()
