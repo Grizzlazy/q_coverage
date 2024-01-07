@@ -94,3 +94,4 @@ def find_positions(coordinates):
     
     return list(unique_positions), a
 
+

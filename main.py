@@ -4,7 +4,7 @@ import queue
 import math
 import numpy as np
 import copy
-from scipy.optimize import linprog
+
 import matplotlib.pyplot as plt
 file_name_csv = "Data/N=20_W=30_H=40_normal_0.csv"
 
@@ -47,27 +47,6 @@ def create_subproblem(A, b, c, solution):
 
     return subproblem_floor, subproblem_ceil
 
-def simplex_method1(a, Q, c):
-    A = -1 * np.array(a) 
-
-    b = -1 * np.array(Q) 
-    Q0 = max(Q)
-    # Bounds for variables
-    x0_bounds = (0, Q0)
-    bounds = [x0_bounds] * len(c)
-
-    # Solve the linear programming problem
-    result = linprog(c, A_ub=A, b_ub=b, bounds=bounds, method='highs')
-
-    if result.success:
-        optimal_solution = [round(x, 6) for x in result.x]
-        optimal_value = round(result.fun, 6)
-    else:
-        optimal_solution = None
-        optimal_value = None
-
-    return result.success, optimal_solution, optimal_value
-
 def branch_and_bound(A, b, c):
     q = queue.Queue()
     iteration = 1e6
@@ -77,7 +56,7 @@ def branch_and_bound(A, b, c):
     q.put(initial_problem)
     while not q.empty():
         current_problem = q.get()
-        flag, current_solution, current_value = simplex_method1(current_problem['A'], current_problem['b'], current_problem['c'])
+        flag, current_solution, current_value = simplex_method.simplex_method1(current_problem['A'], current_problem['b'], current_problem['c'])
         # print(flag, current_solution)
         if not flag: continue
         if isInteger(current_solution)[0]:
