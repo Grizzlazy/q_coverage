@@ -6,7 +6,7 @@ import numpy as np
 import copy
 from scipy.optimize import linprog
 
-file_name_csv = "Data/N=10_W=30_H=40_normal_0.csv"
+file_name_csv = "Data/N=20_W=30_H=40_normal_0.csv"
 
 T = [] #Target
 Q = [] #Demand
@@ -17,11 +17,7 @@ a = [] #Sensor j cover by position P_i
 T, Q = data.read_data(file_name_csv)
 
 P, a = data.find_positions(T)
-print(P)
-a = np.array(a)
-print(a)
 c = [1]*len(P)
-Q_0 = max(Q) #Highest demand
 epsilon = (-1)*0.000001
 
 def isInteger(x):
@@ -32,7 +28,6 @@ def isInteger(x):
     return True, None
 
 def create_subproblem(A, b, c, solution):
-    # Create subproblem with rounded down constraints
     index = isInteger(solution)[1]
     floor_constraint = np.zeros(len(P))
     floor_constraint[index] = 1
@@ -43,7 +38,6 @@ def create_subproblem(A, b, c, solution):
         'c': c
     }
 
-    # Create subproblem with rounded up constraints
     ceil_constraint = -floor_constraint
     subproblem_ceil = {
         'A': np.vstack([A, ceil_constraint]),
@@ -54,10 +48,9 @@ def create_subproblem(A, b, c, solution):
     return subproblem_floor, subproblem_ceil
 
 def simplex_method1(a, Q, c):
-    A = -1 * np.array(a)  # Assuming 'a' is a matrix of coefficients
+    A = -1 * np.array(a) 
 
-    # Inequality constraints RHS
-    b = -1 * np.array(Q)  # Assuming 'q' is a vector of constants
+    b = -1 * np.array(Q) 
     Q0 = max(Q)
     # Bounds for variables
     x0_bounds = (0, Q0)
