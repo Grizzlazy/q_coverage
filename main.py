@@ -97,7 +97,6 @@ def branch_and_bound(A, b, c):
         #print('---------',iteration, '-----------')
         print(current_value)
         print(current_solution)
-        break
         #iteration -=1
     
     if best_solution == []:
