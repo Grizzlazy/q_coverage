@@ -78,7 +78,7 @@ def branch_and_bound(A, b, c):
     while not q.empty():
         current_problem = q.get()
         flag, current_solution, current_value = simplex_method1(current_problem['A'], current_problem['b'], current_problem['c'])
-        print(flag, current_solution)
+        # print(flag, current_solution)
         if not flag: continue
         if isInteger(current_solution)[0]:
             if current_value - best_value < epsilon:
@@ -90,8 +90,8 @@ def branch_and_bound(A, b, c):
                 q.put(subproblem_floor)
                 q.put(subproblem_ceil)
         #print('---------',iteration, '-----------')
-        print(current_value)
-        print(current_solution)
+        # print(current_value)
+        # print(current_solution)
         #iteration -=1
     
     if best_solution == []:
@@ -100,6 +100,17 @@ def branch_and_bound(A, b, c):
 
 flag, x,  optimal_solution = branch_and_bound(a, Q, c)
 
-print(flag)
-print(x)
-print(optimal_solution)
+def convert_output(x):
+    output = []
+    for i in range(len(P)):
+        if x[i] != 0:
+            output.append((P[i], x[i]))
+    
+    return output
+
+output = convert_output(x)
+if flag:
+    for i in range(len(output)):
+        print("Number of sensors in P",output[i][0]," is ", int(output[i][1]))
+    
+    print("Total sensors: ", int(optimal_solution))
