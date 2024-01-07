@@ -3,8 +3,8 @@ import math
 file_name_csv = "Data/N=10_W=10_H=8_normal_0.csv"
 
 N = 10  # number of targets
-W = 10  # width
-H = 8   # height
+W = 30  # width
+H = 40  # height
 R = 3  # radius of sensor
 
 def read_data(path):
@@ -27,9 +27,8 @@ def get_distances(X, Y):
 
 def find_positions(coordinates):
     unique_positions = set()
-    targetted = []
+
     check = [0]*N
-    isolation = []
     for i in range(len(coordinates)-1):
         for j in range(i+1, len(coordinates)):
             if get_distances(coordinates[i], coordinates[j]) <= 2*R:
@@ -47,18 +46,22 @@ def find_positions(coordinates):
 
                 if 0 <= x_p1 <= W and 0 <= y_p1 <= H:
                     unique_positions.add((x_p1, y_p1))
-                    targetted.append([i, j])
                 if 0 <= x_p2 <= W and 0 <= y_p2 <= H:
                     unique_positions.add((x_p2, y_p2))
-                    targetted.append([i, j])
+
     for i in range(len(coordinates)):
-        if check[i] == 0: isolation.append(i)
+        if check[i] == 0: 
+            unique_positions.add((coordinates[i][0], coordinates[i][1]))
+    
+    targetted = []
+    for i in range(len(list(unique_positions))):
+        temp = []
+        targetted.append(temp)
 
     for i in range(len(list(unique_positions))):
         for j in range(len(coordinates)):
-            if j not in targetted[i] and j not in isolation: 
-                if get_distances(list(unique_positions)[i], coordinates[j]) <= R:
-                    targetted[i].append(j)
+            if get_distances(list(unique_positions)[i], coordinates[j]) <= R:
+                targetted[i].append(j)
     
     a = []
     for j in range(len(coordinates)):
@@ -68,5 +71,5 @@ def find_positions(coordinates):
             if j in targetted[i]:
                 a[j][i] = 1
     
-    return list(unique_positions), a, isolation
+    return list(unique_positions), a
 

@@ -1,59 +1,40 @@
-import math
+from scipy.optimize import linprog
 import numpy as np
+import data
+file_name_csv = "Data/N=10_W=10_H=8_normal_0.csv"
+T, Q = data.read_data(file_name_csv)
 
-def get_pivot_position(tableau):
-    z = tableau[-1]
-    column = next(i for i, x in enumerate(z[:-1]) if x > 0)
-    
-    restrictions = []
-    for eq in tableau[:-1]:
-        el = eq[column]
-        restrictions.append(math.inf if el <= 0 else eq[-1] / el)
-        
-    if (all([r == math.inf for r in restrictions])):
-        raise Exception("Linear program is unbounded.")
+P, a, I = data.find_positions(T)
+# Objective function coefficients
+m = len(P)
+c = [1] * m
+# Inequality constraints matrix
+def simplex_method(a, Q, c):
+    A = -1 * np.array(a)  # Assuming 'a' is a matrix of coefficients
 
-    row = restrictions.index(min(restrictions))
-    return row, column
+    # Inequality constraints RHS
+    b = -1 * np.array(Q)  # Assuming 'q' is a vector of constants
+    Q0 = max(Q)
+    # Bounds for variables
+    x0_bounds = (0, Q0)
+    bounds = [x0_bounds] * m
 
-def pivot_step(tableau, pivot_position):
-    new_tableau = [[] for eq in tableau]
-    
-    i, j = pivot_position
-    pivot_value = tableau[i][j]
-    new_tableau[i] = np.array(tableau[i]) / pivot_value
-    
-    for eq_i, eq in enumerate(tableau):
-        if eq_i != i:
-            multiplier = np.array(new_tableau[i]) * tableau[eq_i][j]
-            new_tableau[eq_i] = np.array(tableau[eq_i]) - multiplier
-   
-    return new_tableau
+    # Solve the linear programming problem
+    result = linprog(c, A_ub=A, b_ub=b, bounds=bounds, method='highs')
 
-def is_basic(column):
-    return sum(column) == 1 and len([c for c in column if c == 0]) == len(column) - 1
+    if result.success:
+        print("Optimization successfully converged.")
+        optimal_solution = result.x
+        optimal_value = result.fun
+    else:
+        print("Optimization did not converge. No solution found.")
+        optimal_solution = None
+        optimal_value = None
 
-def get_solution(tableau):
-    columns = np.array(tableau).T
-    solutions = []
-    for column in columns[:-1]:
-        solution = 0
-        if is_basic(column):
-            one_index = column.tolist().index(1)
-            solution = columns[-1][one_index]
-        solutions.append(solution)
-        
-    return solutions
-
-def simplex(c, A, b):
-    tableau = to_tableau(c, A, b)
-
-    while can_be_improved(tableau):
-        pivot_position = get_pivot_position(tableau)
-        tableau = pivot_step(tableau, pivot_position)
-
-    return get_solution(tableau)
-
-
-solution = simplex(c, A, b)
-print('solution: ', solution)
+    return result.success, optimal_solution, optimal_value
+'''
+# Optimal solution
+flag, optimal_solution, optimal_value = simplex_method(a, Q, c) 
+print(flag)
+print("Optimal Solution:", optimal_solution)
+print("Optimal Value:", optimal_value)'''
